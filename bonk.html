@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>The Bonk List</title>
+<meta name="description" content="who said this shit?" />
+<style>
+  html, body { margin: 0; padding: 0; background: #1a1410; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useCallback, useRef } = React;
+
+const RAW_ENTRIES = [
+  { date: "2/8/24", who: "Connor", text: "drinks red wine on a Thursday" },
+  { date: "2/8/24", who: "Haley", text: "Smacks Christopher's butt, ~6:45 AM" },
+  { date: "2/10/24", who: "Matt", text: "said \u201cwould\u201d to Lane Kiffin's gf" },
+  { date: "2/11/24", who: "Jack", text: "Usher takes shirt off in Super Bowl halftime show. No one is turned on but him \u2014 \u201che's still got it\u201d" },
+  { date: "2/?/24", who: "Haley", text: "wants to make out with Chris after 2 cosmos" },
+  { date: "2/16/24", who: "Jack", text: "unbuttons shirt on FaceTime at ski weekend" },
+  { date: "2/23/24", who: "Jarrett", text: "text to GM: \u201cAnd Katara, Azula, Ty Lee, Suki, Yue? Would.\u201d" },
+  { date: "3/1/24", who: "Matt", text: "asks if Katie's perfect gift is unlimited blow jobs" },
+  { date: "3/1/24", who: "Chris", text: "\u201cDo you want me to get the Dune popcorn bucket tomorrow?\u201d (Haley: \u201cno we can get sex toys at the sex store\u201d)" },
+  { date: "3/11/24", who: "Chris", text: "sends reel of cumshot nicknames on his honeymoon" },
+  { date: "3/16/24", who: "Connor", text: "\u201cYou know what else is pretty? The Dune popcorn bucket.\u201d" },
+  { date: "3/?/24", who: "Hunter Cattor", text: "says he'd want Sydney Sweeney at his dinner party" },
+  { date: "3/22/24", who: "Connor", text: "asks the group if they use a Strack on" },
+  { date: "4/5/24", who: "Haley's worship professor", text: "gets excited seeing Duke women's basketball & softball players, asks students to emphasize \u201cCome\u201d in prayer" },
+  { date: "4/11/24", who: "Jack", text: "offers to buy women's basketball recruits rails to get them drunk" },
+  { date: "4/13/24", who: "The Savannah Bananas", text: "and their sexy dancing" },
+  { date: "4/15/24", who: "Matt", text: "says his fantasy is a 7' girl with \u201crelatively\u201d average proportions" },
+  { date: "4/22/24", who: "Connor", text: "thanks Sydney Sweeney for being active on IG" },
+  { date: "6/12/24", who: "Connor", text: "extra horny for Livvy Dunne to be in the hot dog eating contest" },
+  { date: "6/12/24", who: "Matt", text: "excited for Paige to be in the hot dog eating contest" },
+  { date: "8/16/24", who: "Sydney Sweeney", text: "has the Instagram chat in the palm of her hand again" },
+  { date: "8/23/24", who: "Jack", text: "\u201cKim Mulkey. Would.\u201d" },
+  { date: "8/30/24", who: "Connor", text: "\u201cWould\u201d to the local news" },
+  { date: "9/12/24", who: "Jack", text: "\u201cThe Hope Solo documentary is so good\u201d \u2014 in the GC" },
+  { date: "9/15/24", who: "Jarrett", text: "Josh Allen and Justin Jefferson gets him off" },
+  { date: "9/30/24", who: "Connor", text: "\u201cBoys I'm not gonna lie. Mrs. Rachel: would (assuming she doesn't talk high pitched and childish)\u201d" },
+  { date: "10/1/24", who: "Connor", text: "\u201cBlonde mom in the salmon in your parent section. Whose mom is that? Absolute honk.\u201d" },
+  { date: "10/10/24", who: "Jack", text: "self bonk on Vanessa Hudgens spooky szn titty pic" },
+  { date: "10/17/24", who: "Connor", text: "wants a flag of Sydney Sweeney to fly at tailgates" },
+  { date: "10/17/24", who: "Matt", text: "\u201cCall me Panda Express because I'm jerking my chicken.\u201d" },
+  { date: "12/27/24", who: "Connor", text: "\u201cI'm gonna duck Matt so hard next time I see him.\u201d" },
+  { date: "1/1/25", who: "Matt", text: "declares 2025 \u201cthe year of the creampie\u201d" },
+  { date: "1/24/25", who: "Jack", text: "sends the Twitter group a video of sexy Parvati" },
+  { date: "1/31/25", who: "Matt", text: "\u201cHear me out\u2026would\u201d to Lucky's mom from Bluey" },
+  { date: "2/27/25", who: "Connor", text: "\u201cJust saw Tate McRae for the first time HOHHHHHH my \ud83e\udd75\u201d" },
+  { date: "2/28/25", who: "Jack", text: "\u201cI'd eat Lady Gaga's meat dress.\u201d" },
+  { date: "3/1/25", who: "Jarrett", text: "incites horniest in the bach party GC and everyone sends Mewtwo porn" },
+  { date: "3/3/25", who: "Connor", text: "\u201cWhen we do conference championships I'm changing my coach's name to Tater McCrae.\u201d" },
+  { date: "3/5/25", who: "Connor", text: "\u201cThe therapist was giving off some \u2018would\u2019 vibes too. Maybe it was the glasses \ud83d\ude02\u201d" },
+  { date: "3/7/25", who: "Jack", text: "sends Matt personally a video of Hannah Montoya's tits" },
+  { date: "3/8/25", who: "Matt", text: "\u201cI would suck a dong for a wood tip right now.\u201d" },
+  { date: "3/8/25", who: "Jarrett", text: "\u201cIt's even hornier than Fourth Wing\u2026.and it's on my Nook.\u201d" },
+  { date: "3/8/25", who: "Connor", text: "\u201cCan we forgo Yahtzee and just strip?\u201d" },
+  { date: "3/11/25", who: "Jack", text: "is already following half of Jarrett's all-thirst-trap recommended follows" },
+  { date: "4/4/25", who: "Jack", text: "\u201cSoftball girls know how to use their tongue.\u201d" },
+  { date: "4/14/25", who: "Connor", text: "follows Kacey Musgraves on Instagram right before her horniness tweet" },
+  { date: "4/26/25", who: "Connor", text: "drinks red wine with Charlie at Jarrett's wedding (baby's incoming)" },
+  { date: "5/29/25", who: "Connor & Matt", text: "want to buy Sydney Sweeney's bath water" },
+  { date: "6/6/25", who: "Chris", text: "at Davidson reunion, describing his vibe: \u201cNaked and in bed. Nobody else wanted to go. They wanted to go to the Davidson equivalent of Big Al's.\u201d" },
+  { date: "6/26/25", who: "Connor", text: "\u201cRiley Wyant is aging better than a fine wine.\u201d" },
+  { date: "8/2/25", who: "Matt", text: "wants to buy Taylor Mathis's Cameo" },
+  { date: "8/30/25", who: "Connor", text: "\u201cJust met a girl that looks identical to Riley Gaines and she goes \u2018is that a compliment?\u2019 I said \u2018if I was single I'd be scared to talk to you.\u2019\u201d" },
+  { date: "9/16/25", who: "Matt", text: "\u201cBring big tiddy bitches back to Blacksburg.\u201d" },
+  { date: "9/30/25", who: "Connor", text: "\u201cTopanga is on Dancing with the Stars, would then and still would now.\u201d" },
+  { date: "10/3/25", who: "Connor", text: "\u201cRiley Gaines had her baby. Officially MILF status, Jack \ud83d\ude0f\u201d" },
+  { date: "10/3/25", who: "Jarrett", text: "starts with wood" },
+  { date: "10/4/25", who: "Connor", text: "\u201cJustin Herbert is on to something with Madison Beer, good gosh.\u201d" },
+  { date: "10/4/25", who: "Jack", text: "\u201cMartha Stewart\u2026.would.\u201d" },
+  { date: "10/7/25", who: "Connor", text: "\u201cI like my women business casual (khakis).\u201d" },
+  { date: "10/22/25", who: "Connor", text: "\u201cAlso Rikki: big time would\u201d (Chad Powers reference)" },
+  { date: "10/30/25", who: "Matt", text: "sends a Twitter pic of Sydney Sweeney at 8am in the GC" },
+  { date: "11/2/25", who: "Jack", text: "\u201cWould\u201d in response to Hilary Duff coaching VT football" },
+  { date: "11/8/25", who: "Chris", text: "ejaculates to Neo's performance vs. Providence" },
+  { date: "11/13/25", who: "Connor", text: "ranks the WBB all-hotness team: 1. Wenzel 2. Coach Duffy 3. Kate Sears' mom" },
+  { date: "11/27/25", who: "Connor", text: "\u201cI hope the Macy's parade has a Sydney Sweeney balloon.\u201d" },
+  { date: "11/27/25", who: "Chris", text: "\u201cThe seed has never been more fruitful\u201d \u2014 after sending a photo of an empty glass of red" },
+  { date: "12/3/25", who: "Connor", text: "is in the top 2% of Tate McRae listeners on Spotify Wrapped" },
+  { date: "12/6/25", who: "Matt", text: "is a dominating top" },
+  { date: "12/13/25", who: "Connor", text: "\u201cI'm sad to admit I've figured out if you swipe up you can see the wallpaper in full view\u2026.I've done it 12 times.\u201d" },
+  { date: "2/10/25", who: "Jarrett", text: "\u201cIt's not political, I just like Latinas.\u201d" },
+  { date: "3/25/26", who: "Jarrett", text: "\u201cMe looking up \u2018Ozzy Lusth naked\u2019 doesn't help with the whole Gatlinburg situation from earlier.\u201d" },
+  { date: "4/4/26", who: "Chris", text: "\u201cOnce again the gods spread our checks to ram cock in fucking ass.\u201d" },
+  { date: "4/18/26", who: "Charlie", text: "\u201cI will always open your top\u201d \u2014 opening Maddie's drink top" },
+  { date: "4/20/26", who: "Chris", text: "\u201cRub the nipple is key.\u201d (Tulane football scoreboard, ball security)" },
+  { date: "5/23/26", who: "Charlie", text: "is double cheeked up at VB nationals in the group chat (JP photo creds)" },
+];
+
+const ROSTER = ["Chris", "Matt", "Jack", "Connor", "Jarrett", "Charlie"];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildDeck() {
+  return shuffle(RAW_ENTRIES).map((entry, i) => {
+    const onRoster = ROSTER.includes(entry.who);
+    return {
+      ...entry,
+      id: i,
+      options: shuffle([...ROSTER]),
+      onRoster,
+    };
+  });
+}
+
+const ACCENT = "#ff3d6e";
+const INK = "#1a1410";
+const PAPER = "#f7ecd9";
+
+function BonkList() {
+  const [deck, setDeck] = useState(() => buildDeck());
+  const [index, setIndex] = useState(0);
+  const [selected, setSelected] = useState(null);
+  const [score, setScore] = useState({ correct: 0, total: 0 });
+  const [done, setDone] = useState(false);
+  const [dragX, setDragX] = useState(0);
+  const [exiting, setExiting] = useState(false);
+  const touchStartRef = useRef(null);
+  const draggingRef = useRef(false);
+
+  const card = deck[index];
+  const progress = ((index + (selected !== null ? 1 : 0)) / deck.length) * 100;
+
+  const handlePick = useCallback(
+    (name) => {
+      if (selected !== null) return;
+      setSelected(name);
+      const isCorrect = card.onRoster && name === card.who;
+      setScore((s) => ({
+        correct: s.correct + (isCorrect ? 1 : 0),
+        total: s.total + 1,
+      }));
+    },
+    [selected, card]
+  );
+
+  const handleNext = useCallback(() => {
+    if (selected === null) return;
+    setExiting(true);
+    setTimeout(() => {
+      if (index + 1 >= deck.length) {
+        setDone(true);
+      } else {
+        setIndex((i) => i + 1);
+        setSelected(null);
+      }
+      setExiting(false);
+      setDragX(0);
+    }, 180);
+  }, [index, deck.length, selected]);
+
+  const handleRestart = useCallback(() => {
+    setDeck(buildDeck());
+    setIndex(0);
+    setSelected(null);
+    setScore({ correct: 0, total: 0 });
+    setDone(false);
+    setDragX(0);
+    setExiting(false);
+  }, []);
+
+  const onPointerDown = useCallback(
+    (e) => {
+      if (selected === null) return;
+      draggingRef.current = true;
+      touchStartRef.current = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+    },
+    [selected]
+  );
+
+  const onPointerMove = useCallback(
+    (e) => {
+      if (!draggingRef.current || selected === null) return;
+      const x = e.clientX ?? (e.touches && e.touches[0].clientX) ?? 0;
+      setDragX(x - touchStartRef.current);
+    },
+    [selected]
+  );
+
+  const onPointerUp = useCallback(() => {
+    if (!draggingRef.current) return;
+    draggingRef.current = false;
+    if (Math.abs(dragX) > 80) {
+      handleNext();
+    } else {
+      setDragX(0);
+    }
+  }, [dragX, handleNext]);
+
+  const onCardClick = useCallback(() => {
+    if (selected !== null && Math.abs(dragX) < 5) {
+      handleNext();
+    }
+  }, [selected, dragX, handleNext]);
+
+  const pct = score.total > 0 ? Math.round((score.correct / score.total) * 100) : 0;
+
+  return (
+    <div
+      style={{
+        minHeight: "100vh",
+        width: "100%",
+        background: `radial-gradient(ellipse at top, #2a1f1a 0%, ${INK} 60%)`,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        fontFamily: "'Georgia', 'Times New Roman', serif",
+        color: PAPER,
+        padding: "24px 16px 48px",
+        boxSizing: "border-box",
+      }}
+    >
+      <style>{`
+        @keyframes flipIn {
+          from { opacity: 0; transform: rotateX(8deg) translateY(8px); }
+          to { opacity: 1; transform: rotateX(0deg) translateY(0); }
+        }
+        @keyframes stampIn {
+          0% { opacity: 0; transform: scale(1.4) rotate(-8deg); }
+          60% { opacity: 1; transform: scale(0.95) rotate(-8deg); }
+          100% { opacity: 1; transform: scale(1) rotate(-8deg); }
+        }
+        .bl-card { animation: flipIn 0.35s ease-out; }
+        .bl-stamp { animation: stampIn 0.4s cubic-bezier(.2,1.4,.4,1); }
+        .bl-opt {
+          transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, border-color 0.12s ease;
+        }
+        .bl-opt:hover:not(:disabled) { transform: translateY(-2px); }
+        .bl-opt:active:not(:disabled) { transform: translateY(0px) scale(0.98); }
+        .bl-restart:hover { opacity: 0.85; }
+        @media (prefers-reduced-motion: reduce) {
+          .bl-card, .bl-stamp { animation: none; }
+          .bl-opt { transition: none; }
+        }
+        :focus-visible {
+          outline: 2px solid ${ACCENT};
+          outline-offset: 2px;
+        }
+        body { background: ${INK}; }
+      `}</style>
+
+      <div style={{ width: "100%", maxWidth: 480, marginBottom: 18 }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            marginBottom: 6,
+          }}
+        >
+          <h1
+            style={{
+              margin: 0,
+              fontSize: "1.9rem",
+              letterSpacing: "0.5px",
+              fontWeight: 700,
+              color: PAPER,
+            }}
+          >
+            The Bonk List
+            <span style={{ color: ACCENT }}>.</span>
+          </h1>
+          <div
+            style={{
+              fontSize: "0.85rem",
+              color: "#c9b89a",
+              fontStyle: "italic",
+            }}
+          >
+            who said this shit?
+          </div>
+        </div>
+
+        {!done && (
+          <>
+            <div
+              style={{
+                height: 6,
+                borderRadius: 4,
+                background: "#3a2e26",
+                overflow: "hidden",
+                marginTop: 10,
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress}%`,
+                  background: ACCENT,
+                  transition: "width 0.3s ease",
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: "0.75rem",
+                color: "#a8967a",
+                marginTop: 6,
+                fontFamily: "Georgia, serif",
+              }}
+            >
+              <span>
+                Card {index + 1} / {deck.length}
+              </span>
+              <span>
+                Score: {score.correct}/{score.total}
+                {score.total > 0 ? ` (${pct}%)` : ""}
+              </span>
+            </div>
+          </>
+        )}
+      </div>
+
+      {!done ? (
+        <div
+          key={card.id}
+          className="bl-card"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerLeave={onPointerUp}
+          onClick={onCardClick}
+          style={{
+            width: "100%",
+            maxWidth: 480,
+            background: PAPER,
+            color: INK,
+            borderRadius: 14,
+            boxShadow: "0 18px 40px rgba(0,0,0,0.45), 0 2px 0 rgba(255,255,255,0.05) inset",
+            padding: "28px 24px 22px",
+            position: "relative",
+            boxSizing: "border-box",
+            cursor: selected !== null ? "grab" : "default",
+            touchAction: selected !== null ? "none" : "auto",
+            userSelect: "none",
+            transform: exiting
+              ? `translateX(${dragX > 0 ? 600 : -600}px) rotate(${dragX > 0 ? 8 : -8}deg)`
+              : `translateX(${dragX}px) rotate(${dragX / 40}deg)`,
+            opacity: exiting ? 0 : 1,
+            transition: draggingRef.current ? "none" : "transform 0.25s ease, opacity 0.18s ease",
+          }}
+        >
+          <div
+            style={{
+              fontSize: "0.72rem",
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              color: "#8a7a5f",
+              marginBottom: 10,
+              fontFamily: "Georgia, serif",
+            }}
+          >
+            {card.date}
+          </div>
+
+          <p
+            style={{
+              fontSize: "1.18rem",
+              lineHeight: 1.45,
+              margin: "0 0 22px",
+              fontWeight: 500,
+            }}
+          >
+            {card.text}
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {card.options.map((name) => {
+              const isPicked = selected === name;
+              const isAnswer = card.onRoster && name === card.who;
+              let bg = "#fffaf0";
+              let border = "#d8c7a3";
+              let textColor = INK;
+
+              if (selected !== null) {
+                if (isAnswer) {
+                  bg = "#e7f4e8";
+                  border = "#3f9450";
+                  textColor = "#23552d";
+                } else if (isPicked) {
+                  bg = "#fbe7e9";
+                  border = ACCENT;
+                  textColor = "#8a1530";
+                } else {
+                  bg = "#f1e8d4";
+                  border = "#d8c7a3";
+                  textColor = "#9c8c6f";
+                }
+              }
+
+              return (
+                <button
+                  key={name}
+                  className="bl-opt"
+                  disabled={selected !== null}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePick(name);
+                  }}
+                  style={{
+                    textAlign: "left",
+                    padding: "12px 16px",
+                    borderRadius: 10,
+                    border: `2px solid ${border}`,
+                    background: bg,
+                    color: textColor,
+                    fontSize: "1rem",
+                    fontFamily: "Georgia, serif",
+                    cursor: selected !== null ? "default" : "pointer",
+                    fontWeight: selected !== null && isAnswer ? 700 : 500,
+                  }}
+                >
+                  {name}
+                  {selected !== null && isAnswer ? "  \u2713" : ""}
+                  {selected !== null && isPicked && !isAnswer ? "  \u2717" : ""}
+                </button>
+              );
+            })}
+          </div>
+
+          {selected !== null && !card.onRoster && (
+            <div
+              style={{
+                marginTop: 14,
+                padding: "12px 14px",
+                borderRadius: 10,
+                background: "#f1e8d4",
+                border: "2px dashed #c9b78f",
+                fontSize: "0.92rem",
+                color: "#5c4f3a",
+              }}
+            >
+              Trick card \u2014 none of the boys did this one. It was actually{" "}
+              <strong style={{ color: INK }}>{card.who}</strong>.
+            </div>
+          )}
+
+          {selected !== null && (
+            <div
+              className="bl-stamp"
+              style={{
+                marginTop: 18,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <span
+                style={{
+                  fontWeight: 700,
+                  fontSize: "0.95rem",
+                  color: card.onRoster && selected === card.who ? "#23552d" : ACCENT,
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {card.onRoster && selected === card.who ? "BONK CONFIRMED" : "WRONG BONKER"}
+              </span>
+              <span
+                style={{
+                  fontSize: "0.78rem",
+                  color: "#9c8c6f",
+                  fontStyle: "italic",
+                }}
+              >
+                tap or swipe \u2192
+              </span>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          className="bl-card"
+          style={{
+            width: "100%",
+            maxWidth: 480,
+            background: PAPER,
+            color: INK,
+            borderRadius: 14,
+            boxShadow: "0 18px 40px rgba(0,0,0,0.45)",
+            padding: "36px 28px",
+            textAlign: "center",
+            boxSizing: "border-box",
+          }}
+        >
+          <div style={{ fontSize: "0.8rem", letterSpacing: "1.5px", textTransform: "uppercase", color: "#8a7a5f" }}>
+            Deck complete
+          </div>
+          <div style={{ fontSize: "3rem", fontWeight: 800, margin: "10px 0 4px", color: ACCENT }}>
+            {pct}%
+          </div>
+          <p style={{ margin: "0 0 22px", color: "#5c4f3a" }}>
+            You correctly bonked {score.correct} out of {score.total}.
+          </p>
+          <button
+            className="bl-restart"
+            onClick={handleRestart}
+            style={{
+              background: INK,
+              color: PAPER,
+              border: "none",
+              borderRadius: 8,
+              padding: "12px 22px",
+              fontSize: "1rem",
+              fontFamily: "Georgia, serif",
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            Shuffle &amp; play again
+          </button>
+        </div>
+      )}
+
+      <div
+        style={{
+          marginTop: 24,
+          fontSize: "0.7rem",
+          color: "#6b5d48",
+          textAlign: "center",
+          maxWidth: 420,
+        }}
+      >
+        For the group chat's eyes only.
+      </div>
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<BonkList />);
+</script>
+</body>
+</html>
